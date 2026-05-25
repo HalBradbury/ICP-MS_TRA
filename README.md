@@ -6,8 +6,6 @@ Jupyter notebook for processing time-resolved ICP-MS data acquired with a SeaFAS
 
 **`DataExtraction_Final.ipynb`** — main working notebook. Run cells top to bottom after updating the config cell.
 
-`DataExtraction_Hal.ipynb` — separate working copy.
-
 ## Workflow
 
 1. **Imports** — standard scientific Python stack.
