@@ -14,7 +14,7 @@ Jupyter notebook for processing time-resolved ICP-MS data acquired with a SeaFAS
 4. **Optional: window visualiser** — plots the signal plateau to help set `T_START_S` / `T_STOP_S`.
 5. **`file_import`** — loads all files in `DATA_DIR`, subtracts background, normalises to In115, integrates within the time window, and plots TRA traces.
 6. **In115 drift check** — bar chart of per-file In115 integrated signal; warns if the run-to-run spread exceeds 20% of the median.
-7. **Spike detection** — flags isolated anomalous points within the integration window using a rolling-median / MAD algorithm.
+7. **Spike detection** — flags isolated anomalous points within the integration window using a rolling-median / MAD algorithm; produces a detail plot for each flagged combination so the raw signal can be inspected immediately.
 8. **Calibration** — fits a linear model (forced-origin by default) to the standards in `CAL_STDS`, converts In-normalised signals to concentrations, propagates errors.
 9. **F-test diagnostic** — tests per element whether a non-zero intercept is statistically warranted; guides the choice of `FIT_INTERCEPT`.
 10. **Output** — displays concentration and error tables; writes `Results.xlsx` (three sheets: concentrations, errors, combined interleaved) into `DATA_DIR`.
@@ -39,6 +39,23 @@ All parameters are in the second cell of the notebook.
 ### Setting the integration window
 
 Run the **window visualiser cell** (cell 5) to identify the signal plateau. It auto-detects the elution band and plots it against the current config window. Adjust `IDX_START`, `IDX_STOP`, and `PEAK_BUFFER` (rows) until the window covers the plateau, then copy the printed `T_START_S` / `T_STOP_S` values into the config cell.
+
+### Spike detection
+
+The spike detection cell flags isolated single-point outliers within the integration window (rolling-median residual > `N_MAD × MAD`, with neither neighbour also flagged). For each flagged element/file combination a detail plot is produced showing the raw signal, rolling median, and the flagged point(s) marked in red. The cell-level parameters are:
+
+| Parameter | Description |
+|---|---|
+| `N_MAD` | Residual threshold in units of MAD (default 7 — conservative) |
+| `ROLLING_W` | Rolling median window width in points (default 10) |
+| `MIN_PEAK_RATIO` | Skip element/file if peak/median < this (default 10 — excludes low-SNR columns) |
+| `SPIKE_PLOT_THRESHOLD` | Generate a detail plot if spike count ≥ this value (default 1; set to 0 to suppress all plots) |
+
+If a detail plot shows a genuine spike (one point clearly elevated above a smooth signal on either side), there are three options in order of preference:
+
+1. **Accept it** — a single spike contributes ~1/N of the integrated mean, where N is the number of points in the window. Check whether the resulting concentration is an outlier relative to similar samples before acting.
+2. **Trim the window** — if the spike falls near the window edge, tighten `T_START_S` / `T_STOP_S` in the config cell to exclude it, then re-run from the `file_import` cell.
+3. **Edit the raw file** — open the data file in a text editor, remove the spike row, save a copy, and re-run from the `file_import` cell. Use as a last resort.
 
 ### Choosing `FIT_INTERCEPT`
 
