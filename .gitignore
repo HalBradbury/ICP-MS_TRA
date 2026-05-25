@@ -1,0 +1,11 @@
+.DS_Store
+.ipynb_checkpoints/
+__pycache__/
+*.pyc
+
+# Output files
+Results.xlsx
+
+# Large or sensitive data directories
+Example Data/
+Example Data copy/
